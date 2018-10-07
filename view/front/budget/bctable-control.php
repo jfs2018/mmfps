@@ -814,11 +814,14 @@ ALTER TABLE `fi_natomm_700000`
 	
 	
 	/*** partnerDAO Lister  ***/
+	$prtnType = 328; // Supplier/Contractor
+	if( ($_REQUEST['id'] >740000) && ($_REQUEST['id'] <750000) ) $prtnType = 330 ; // Customer
+	
 	$lr_partners = new \Jazz\Core\JazzDAOList( $yc,
 										 $partnerDAO, // nr 2018-07-18
 										 [
 										  [ 'Active', '=', 1 ],
-										  [ 'ItemTypeID', '=', 328 ]
+										  [ 'ItemTypeID', '=', $prtnType ]
 										 ],
 										 [ ['First8',1] ]
 										);

@@ -568,9 +568,9 @@ switch( $_REQUEST['cmd'] ){
 				  $custoDAO->setValue('CountryCode', 348 ); 
 				  if( isset($_REQUEST['cc']) ) 
 				  if( (int)$_REQUEST['cc'] >0 )
-				  $custoDAO->setValue('CountryCode', int)$_REQUEST['cc'] ); 
+				  $custoDAO->setValue('CountryCode', (int)$_REQUEST['cc'] ); 
 				  
-				  $custoDAO->setValue('JsonData', jsonobject4SQL( array( "n" => $_REQUEST['n'] ) ) ; // megkeressük
+				  $custoDAO->setValue('JsonData', jsonobject4SQL( array( "n" => $_REQUEST['v'] ) ) ) ; // megkeressük
 				  
 				  $custoDAO->loadMe() ;
 				  
@@ -579,8 +579,9 @@ switch( $_REQUEST['cmd'] ){
 				  if( $custoID ==0 )
 				  {
 				   $custoDAO->setID("") ;
+				   $custoDAO->setValue("Active", 1) ;
 				   $custoDAO->insertMe() ;
-				   $custoID = (int)$custoDAO->getID() ; // 20181007
+				   $custoID = (int)$custoDAO->getID() ; // 20181008
 				  }
 				  //
 				  
@@ -594,7 +595,7 @@ switch( $_REQUEST['cmd'] ){
 				  $bclineDAO->updateMe();
 				  //
 				
-				  echo '{"e":0,"t":"cust","v":"'.$_REQUEST['v'].'","rid":'.(int)$_REQUEST['rid'].'}' ;
+				  echo '{"e":0,"t":"cust","v":"'.$_REQUEST['v'].'","id":'.(int)$custoID.',"rid":'.(int)$_REQUEST['rid'].'}' ;
 				}
 				else
 				if( strcmp( $_REQUEST['t'],"pm")==0 ){

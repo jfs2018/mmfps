@@ -55,16 +55,73 @@ jQuery(document).ready(function($){
 			  break;
    
     //spec. "Customer":
-	//case "cust" :
+	case "cust" :
 	
+			  $(this).attr("undere", 1 ) ;
+	
+			  xcol_v = $(this).attr("xcol-txt");
+			  
+			  html = "<input type=\"text\" name=\"edit_exp_"+xcol_rid+"_"+xcol_t+"\" xcol-rid=\""+xcol_rid+"\" id=\"edit_exp_"+xcol_rid+"_"+xcol_t+"\" value=\"\" class=\"py-0 border-0 text-left\" style=\"width:100%;font-size:9pt;font-family:Sans-serif;\">" ;
+			  
+			  $(this).html( html ) ;
+			  
+			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).val("").val( xcol_v ).focus() ;
+			  
+			  // ...
+			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).on("blur",function(){
+				
+				$("#pa_"+xcol_rid).attr("undere",0) ; // first :)
+				
+				var rid = $("#pa_"+xcol_rid ).attr("xcol-rid") ;
+				
+				var v = $("#edit_exp_"+xcol_rid+"_"+xcol_t ).val() ;
+				
+				$("#pa_"+xcol_rid).html( v ) ;
+				$("#pa_"+xcol_rid).attr( "xcol-txt",v ) ;
+				
+				// SQL Update:
+				$.ajax({
+				
+						type: "post",
+						url: site_dir+"?svc=ajax-natomm-fps-bcedit",
+						data: {"bc":bcid,"yr":fi_sel_yr,"cmd":"mod","rid":rid,"t":xcol_t,"v":v },
+						dataType: "json",
+						error:function(){ alert("Ajax call failed. | fn=mod,"+xcol_t+" rid="+rid) },
+				}).done( function( ret ){
+		 
+							if( ret.e == 0 )
+							{
+							 $("#pa_"+xcol_rid).attr( "xcol-id",ret.id ) ;
+							}
+							else
+							alert("Server-side SQL Update function failed. Code "+ret.e);
+				});   
+				
+			  });
+			  
+			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).on("keydown",function(ev){
+
+			    var keyc = (ev.keyCode ? ev.keyCode : ev.which);
+				if ( keyc == 13 ) {
+				 ev.preventDefault();	
+				 $( this ).trigger("blur") ;
+				}
+				else
+				if ( keyc == 27 ) {
+				 // Esc key:					 
+				 $("#pa_"+xcol_rid).attr("undere",0) ; // first :)
+				 $("#pa_"+xcol_rid).html(  $("#pa_"+xcol_rid).attr( "xcol-txt" )  ) ;
+				}
+			  });
+			  
+			  break;
 	// txt:
 	case "event" :
 	case "venue" :
 	case "evdt" :
 	case "ptcp" :
 	case "trv" :
-	
-			  
+
 			  $(this).attr("undere", 1 ) ;
 	
 			  xcol_v = $(this).attr("xcol-txt");

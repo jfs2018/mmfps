@@ -825,7 +825,7 @@ ALTER TABLE `fi_natomm_700000`
 										 ],
 										 [ ['First8',1] ]
 										);
-	$li_partners = $lr_partners->getRowsArrayByID( [ 'ID', 'JsonData' ] ) ;
+	$li_partners = $lr_partners->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'JsonData' ] ) ;
 	
 	
 	//
@@ -1513,9 +1513,23 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 						<?php
 							//
 							// $hidden_cols = array(  ); // FENTEBB olvassuk ki! a bcDefsDAO-ból
+							
+							//
+							$shorten_subj = false;
+							
+							$this_bc_is_rev = false;
+							
+							if( count($plus_cols)>0 ){ $shorten_subj = true; }
+							else
+							if( ((int)$_REQUEST['id']>740000) && ((int)$_REQUEST['id']<750000) )
+							{ 
+							 $this_bc_is_rev = true;
+							 
+							 $shorten_subj = true; 
+							}
 							//
 						?>
-						<th class="text-center" <?php echo ( count($plus_cols)>0 ? ' width="155"' : ' width="262" style="max-width:262px;"' ) ; ?> ><?php 
+						<th class="text-center" <?php echo ( $shorten_subj ? ' width="155"' : ' width="262" style="max-width:262px;"' ) ; ?> ><?php 
 						//
 						$lbl_plus_header = array( "event" => "Event",
 												  "venue" => "Venue",
@@ -1538,7 +1552,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 						  $trv_field = false;
 						  
 						  // !!
-						  if( $_REQUEST['id']>740000 ) $trv_field = true ; // 74 Chapternél nincs Req	20181004
+						  if( $this_bc_is_rev ) $trv_field = true ; // 74 Chapternél nincs Req	20181004
 						//
 						
 						//
@@ -1564,7 +1578,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 						}
 						else
 						{
-						echo ( (int)$_REQUEST['id']>740000 ? 'Description' : 'Subject of the procurement' ) ; ?><br>&nbsp;</th> 
+						echo ( $this_bc_is_rev ? 'Description' : 'Subject of the procurement' ) ; ?><br>&nbsp;</th> 
 						<?php 
 							  $genJS_Array_expHead[ $cols ]='subj';
 							  $cols++; 
@@ -1631,7 +1645,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 							  $cols++; 
 						?>
 						
-						<?php if( ($bcid >740000)&&($bcid <750000) ){ ?>
+						<?php if( $this_bc_is_rev ){ ?>
 						<th class="text-center"> Payer <br> 
 						&nbsp;</th>
 						<?php }else{ ?>
@@ -1883,7 +1897,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 											   
 	    $rows_bc_expcom = $lr_bcode->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'Date', 'RequestID', 'ProjectID', 'POWID', 'BranchID', 'PartnerID', 'PaymentMethode', 'InvoiceNumber', 'InvoiceAmount', 'InvoiceCurrency', 'BookedAmount', 'BookedCurrency', 'XRate', 'InsertedByUID', 'TimeStamp', 'Subject' ] ) ;
 	
-	print_r( $rows_bc_expcom ) ;
+	//print_r( $rows_bc_expcom ) ;
 	//
 	
 	
@@ -2051,12 +2065,12 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 							$pa_ = $o_->{'n'} ; 
 						}
 				
-						$_genJS['pa'] = array( 'id' => $row_e['PartnerID'], 'v' => $pa_ ) ; // Object( id,value ) | type='prj'
+						$_genJS['pa'] = array( 'id' => $row_e['PartnerID'], 't' => (int)$li_partners[ $row_e['PartnerID'] ]['ItemTypeID'], 'v' => $pa_ ) ; // Object( id,value ) | type='prj'
 				//				
 			}
 			else{
 				//
-				$_genJS['pa'] = array( 'id' => 0, 'v' => "" ) ;
+				$_genJS['pa'] = array( 'id' => 0, 't'=>0, 'v' => "" ) ;
 			}
 
 
@@ -2147,7 +2161,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 		
 		if( ($bcid >740000)&&($bcid <750000) ){
 		 //
-		 echo ' <td id="pa_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="cust" xcol-id="'.$_genJS['pa']['id'].'" undere="0" class="xcol-exp text-center px-0" xcol-txt="'.$pa_.'">'.$pa_.'</td>';
+		 echo ' <td id="pa_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="cust" xcol-id="'.$_genJS['pa']['id'].'" undere="0" class="xcol-exp '.( $this_bc_is_rev ? 'text-left px-1':'text-center px-0' ).'" xcol-txt="'.$pa_.'">'.$pa_.'</td>';
 		}
 		else
 		 echo '		
@@ -2173,6 +2187,8 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 		//
 		//
 		$genJS_Array_expMatrix[] = $_genJS ;
+		
+		print_r( $_genJS ) ;
 			
 		$_genJS = null;
 		

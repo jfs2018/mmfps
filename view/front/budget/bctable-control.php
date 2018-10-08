@@ -3,7 +3,7 @@
  * Táblázatkezelő Komponens (c) 2018 JFS
  *
  * @start 2018-07-16 14:30:00 | table_base iHI
- * @lastmod 2018-10-04 11:32 nr
+ * @lastmod 2018-10-08 17:02 nr
  */
  
 //

@@ -18,6 +18,10 @@ $js_budget_head_ops ='
 //function recalc_com_balance(){ ... } // dropped 20180927
 //function recalc_exp_balance(){ ... } // dropped 20180927
 
+var date_today = "'.date('Y-m-d').'";
+
+var fndtpk = new Array() ; // array of fn of datepickers 20181010
+
 //
 jQuery(document).ready(function($){
 		
@@ -152,7 +156,7 @@ jQuery(document).ready(function($){
 				
 						type: "post",
 						url: site_dir+"?svc=ajax-natomm-fps-bcedit",
-						data: {"bc": '.(int)$_REQUEST['id'].',"yr":fi_sel_yr,"cmd":"mod","rid":rid,"t":xcol_t,"v":v },
+						data: {"bc":bcid,"yr":fi_sel_yr,"cmd":"mod","rid":rid,"t":xcol_t,"v":v },
 						dataType: "json",
 						error:function(){ alert("Ajax call failed. | fn=mod,"+xcol_t+" rid="+rid) },
 						success: function( ret ){
@@ -320,12 +324,8 @@ jQuery(document).ready(function($){
 	
 			  $(this).attr("undere", 1 ) ;
 	
-			  xcol_v = $(this).html();
-			  xcol_v = xcol_v.replace(/\"/g,""); xcol_v = xcol_v.replace(/ /g,"");
-			  
-			  if( xcol_v=="" ){ xcol_v = "'.date('Y-m-d').'"; }
-			  else
-			  if( xcol_v=="0000-00-00" ) xcol_v = "'.date('Y-m-d').'";
+			  xcol_v = $(this).attr("xcol-txt");
+			  //xcol_v = xcol_v.replace(/\"/g,""); xcol_v = xcol_v.replace(/ /g,"");
 			  
 			  $(this).css("width","86px") ;
 			  
@@ -333,16 +333,34 @@ jQuery(document).ready(function($){
 			  
 			  $(this).html( html ) ;
 			  
-			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).val("").val( xcol_v ).focus() ;
+			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).val("").val( xcol_v ); //.focus() ;
+			  
+			  fndtpk[ xcol_rid ] = $("#edit_exp_"+xcol_rid+"_"+xcol_t ).datepicker({ // 20181010
+				  format: "dd/mm/yyyy", 
+				  weekStart: 0
+				  //
+				}).on("changeDate", function(ev) {
+				  fndtpk[ xcol_rid ].hide();
+				  
+				  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).trigger("blur") ;
+				  //
+				}).data("datepicker");
+				
+			  fndtpk[ xcol_rid ].setValue( xcol_v ) ;
+			  fndtpk[ xcol_rid ].show() ; // 20181010
+			  //
 
 			  //
 			  $("#edit_exp_"+xcol_rid+"_"+xcol_t ).on("blur",function(){
 				
 				$( this ).parent().attr("undere",0) ; // first :)
   
-				var v = $( this ).val().trim() ;
+				var v = $( this ).val() ;
 				
-				var rid = $(this).parent().attr("xcol-rid") ;
+				$("#"+xcol_t+"_"+xcol_rid).html( v ) ; // !!
+				$("#"+xcol_t+"_"+xcol_rid).attr("xcol-txt", v ) ;
+				
+				var rid = $("#"+xcol_t+"_"+xcol_rid).attr("xcol-rid") ;
 
 				// SQL Update:
 				$.ajax({
@@ -359,9 +377,6 @@ jQuery(document).ready(function($){
 		    
 						}
 				});   
-				
-				$( this ).parent().html( v ) ; // last! :)
-				$( this ).parent().attr("xcol-txt", v ) ; // last! :)
 				
 			  });
 			  
@@ -1169,16 +1184,35 @@ jQuery(document).ready(function($){
 			  
 			  $(this).html( html ) ;
 			  
-			  $("#edit_comm_"+xcol_rid+"_"+xcol_t ).val("").val( xcol_v ).focus() ;
+			  $("#edit_comm_"+xcol_rid+"_"+xcol_t ).val("").val( xcol_v ); //.focus() ;
+			  
+			  fndtpk[ xcol_rid ] = $("#edit_comm_"+xcol_rid+"_"+xcol_t ).datepicker({ // 20181010
+				  format: "dd/mm/yyyy", 
+				  weekStart: 0
+				  //
+				}).on("changeDate", function(ev) {
+				  fndtpk[ xcol_rid ].hide();
+				  
+				  $("#edit_comm_"+xcol_rid+"_"+xcol_t ).trigger("blur") ;
+				  //
+				}).data("datepicker");
+				
+			  fndtpk[ xcol_rid ].setValue( xcol_v ) ;
+			  fndtpk[ xcol_rid ].show() ; // 20181010
+			  //
+
 
 			  //
-			  $("#edit_comm_"+xcol_rid+"_"+xcol_t ).bind("blur",function(){
+			  $("#edit_comm_"+xcol_rid+"_"+xcol_t ).on("blur",function(){
 				
 				$( this ).parent().attr("undere",0) ; // first :)
   
 				var v = $( this ).val().trim() ;
 				
-				var rid = $(this).parent().attr("xcol-rid") ;
+				$("#"+xcol_t+"_"+xcol_rid).html( v ) ; // !! 20181010
+				$("#"+xcol_t+"_"+xcol_rid).attr("xcol-txt", v ) ;
+				
+				var rid = $("#"+xcol_t+"_"+xcol_rid).attr("xcol-rid") ;
 
 				// SQL Update:
 				$.ajax({
@@ -1195,9 +1229,6 @@ jQuery(document).ready(function($){
 		    
 						}
 				});   
-				
-				$( this ).parent().html( v ) ; // last! :)
-				$( this ).parent().attr("xcol-txt", v ) ; // last! :)
 				
 			  });
 			  

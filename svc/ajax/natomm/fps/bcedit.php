@@ -3,7 +3,7 @@
  * NATO MILMED COE FPS Tier 1.
  * BudgetCode__Line__Editor.php
  * @start 2018-08-19 nr
- * @lastmod 2018-10-07 nr 12:57
+ * @lastmod 2018-10-10 nr 15:57
  *
  * ALTER TABLE `fi_natomm_723111` CHANGE `subj` `subj` TEXT CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'evt venue dt pt trv';
  * ALTER TABLE `fi_natomm_723311` CHANGE `subj` `subj` TEXT CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL COMMENT 'evt venue dt pt';
@@ -416,6 +416,13 @@ switch( $_REQUEST['cmd'] ){
 				  $bclineDAO->setID( (int)$_REQUEST['rid'] ) ;
 				
 				  $da = lossSQLinjectionChars( $_REQUEST['v'] ) ;
+				  
+				  if( strpos( $da,'/' )!==false )
+				  {
+				   $a = explode( '/',$da ) ; // kieg. 20181010
+				   
+				   $da = $a[2].'-'.$a[1].'-'.$a[0] ; // 23/06/1980 = 1980-06-23
+				  }
 				  
 				  // error handle:
 				  if( strlen($da)<10 ){ $da = date('Y-m-d'); }

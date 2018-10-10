@@ -3,7 +3,7 @@
  * Táblázatkezelő Komponens (c) 2018 JFS
  *
  * @start 2018-07-16 14:30:00 | table_base iHI
- * @lastmod 2018-10-08 17:02 nr
+ * @lastmod 2018-10-10 16:02 nr
  */
  
 //
@@ -715,6 +715,12 @@ ALTER TABLE `fi_natomm_700000`
 	
 	//
 	//
+		$this_bc_is_rev = false; // !!
+		
+		if( ((int)$_REQUEST['id']>740000) && ((int)$_REQUEST['id']<750000) )
+		 $this_bc_is_rev = true;
+	//
+	//
 	
 	/*** BudgetCode Line Data DAO ***/
 	if( !isset( $bcdataDAO ) ){
@@ -815,9 +821,18 @@ ALTER TABLE `fi_natomm_700000`
 	
 	/*** partnerDAO Lister  ***/
 	$prtnType = 328; // Supplier/Contractor
-	if( ($_REQUEST['id'] >740000) && ($_REQUEST['id'] <750000) ) $prtnType = 330 ; // Customer
 	
-	$lr_partners = new \Jazz\Core\JazzDAOList( $yc,
+	$lr_partners = null;
+	$li_partners = array();
+	
+	if( $this_bc_is_rev ){
+	  //
+	  $prtnType = 330 ; // Customer
+	}
+	else
+	{
+	  //
+	  $lr_partners = new \Jazz\Core\JazzDAOList( $yc,
 										 $partnerDAO, // nr 2018-07-18
 										 [
 										  [ 'Active', '=', 1 ],
@@ -825,8 +840,8 @@ ALTER TABLE `fi_natomm_700000`
 										 ],
 										 [ ['First8',1] ]
 										);
-	$li_partners = $lr_partners->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'JsonData' ] ) ;
-	
+	  $li_partners = $lr_partners->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'JsonData' ] ) ;
+	}
 	
 	//
 	
@@ -1517,14 +1532,10 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 							//
 							$shorten_subj = false;
 							
-							$this_bc_is_rev = false;
-							
 							if( count($plus_cols)>0 ){ $shorten_subj = true; }
 							else
 							if( ((int)$_REQUEST['id']>740000) && ((int)$_REQUEST['id']<750000) )
 							{ 
-							 $this_bc_is_rev = true;
-							 
 							 $shorten_subj = true; 
 							}
 							//
@@ -1897,9 +1908,34 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 											   
 	    $rows_bc_expcom = $lr_bcode->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'Date', 'RequestID', 'ProjectID', 'POWID', 'BranchID', 'PartnerID', 'PaymentMethode', 'InvoiceNumber', 'InvoiceAmount', 'InvoiceCurrency', 'BookedAmount', 'BookedCurrency', 'XRate', 'InsertedByUID', 'TimeStamp', 'Subject' ] ) ;
 	
-	//print_r( $rows_bc_expcom ) ;
 	//
-	
+	//
+	if( $prtnType == 330 )
+	{
+	  //
+	  // mod. 20181009 !figyelem! többezer vevő van/lesz!!
+	  // Ezért csak ezek a vevők legyenek lekérve! ne az elején mind a többezer - eleresztve mint ahogy a Supplier-ek -
+	  //
+	  $arr_customers = array();
+	  foreach( $rows_bc_expcom as $row )
+	  {
+	   $arr_customers[] = (int)$row['PartnerID'];
+	  }
+	  
+	  //
+	  $lr_partners = new \Jazz\Core\JazzDAOList( $yc,
+										 $partnerDAO, // nr 2018-07-18
+										 [
+										  [ 'Active', '=', 1 ],
+										  [ 'ItemTypeID', '=', $prtnType ],
+										  [ 'ID', 'IN', $arr_customers ]
+										 ]
+										);
+	  $li_partners = $lr_partners->getRowsArrayByID( [ 'ID', 'ItemTypeID', 'JsonData' ] ) ;
+	  
+	  //
+	}
+	//
 	
 	//
 	// rows - expenditures:
@@ -2156,10 +2192,22 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 		//
 		echo '		
 				<td id="pm_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="pm" xcol-id="'.$_genJS['pm']['id'].'" undere="0" class="xcol-exp px-0 text-center">'.$arr_pmeth[ $row_e['PaymentMethode'] ].'</td>
-				<td id="invo_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="invo" xcol-id="0" undere="0" class="xcol-exp text-center px-0" xcol-txt="'.$row_e['InvoiceNumber'].'">'.$row_e['InvoiceNumber'].'</td>
-				<td id="date_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="date" xcol-id="0" undere="0" class="xcol-exp text-center px-0" xcol-txt="'.$row_e['Date'].'">'.$row_e['Date'].'</td>' ;
+				<td id="invo_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="invo" xcol-id="0" undere="0" class="xcol-exp text-center px-0" xcol-txt="'.$row_e['InvoiceNumber'].'">'.$row_e['InvoiceNumber'].'</td>';
 		
-		if( ($bcid >740000)&&($bcid <750000) ){
+		//
+		if( strcmp( $row_e['Date'],"")==0 ){ $row_e['Date'] = date('Y-m-d') ; }
+		else
+		if( strcmp( $row_e['Date'],'0000-00-00')==0 ){ $row_e['Date'] = date('Y-m-d') ; }
+		
+		$ar__dt = explode( '-',$row_e['Date'] ) ; // 20181010
+		
+		$dt_fmt_en = $ar__dt[2].'/'.$ar__dt[1].'/'.$ar__dt[0] ;
+		
+		echo '
+				<td id="date_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="date" xcol-id="0" undere="0" class="xcol-exp text-center px-0" xcol-txt="'.$dt_fmt_en.'">'.$dt_fmt_en.'</td>' ;
+		
+		
+		if( $this_bc_is_rev ){
 		 //
 		 echo ' <td id="pa_'.$row_e['ID'].'" xcol-rid="'.$row_e['ID'].'" xcol-t="cust" xcol-id="'.$_genJS['pa']['id'].'" undere="0" class="xcol-exp '.( $this_bc_is_rev ? 'text-left px-1':'text-center px-0' ).'" xcol-txt="'.$pa_.'">'.$pa_.'</td>';
 		}
@@ -2188,7 +2236,7 @@ addJSHook(JSHOOK_LAST, $js_hidecols);
 		//
 		$genJS_Array_expMatrix[] = $_genJS ;
 		
-		print_r( $_genJS ) ;
+		//print_r( $_genJS ) ;
 			
 		$_genJS = null;
 		
@@ -2660,10 +2708,20 @@ if( (int)$_REQUEST['id'] <740000 )
 														round( $row_c['XRate'],2) , 
 														round( $row_c['BookedAmount'],2) , 
 													) ;
-			
+		
+		//
+		if( strcmp( $row_c['Date'],"")==0 ){ $row_c['Date'] = date('Y-m-d') ; }
+		else
+		if( strcmp( $row_c['Date'],'0000-00-00')==0 ){ $row_c['Date'] = date('Y-m-d') ; }
+		
+		$ar__dt = explode( '-',$row_c['Date'] ) ; // 20181010
+		
+		$dt_fmt_en = $ar__dt[2].'/'.$ar__dt[1].'/'.$ar__dt[0] ;
+
+													
 		//
 		echo '		
-				<td id="date_'.$row_c['ID'].'" xcol-rid="'.$row_c['ID'].'" xcol-t="date" xcol-id="'.$row_c['ID'].'" undere="0" class="xcol-comm text-center px-0" xcol-txt="'.$row_c['Date'].'">'.$row_c['Date'].'</td>
+				<td id="date_'.$row_c['ID'].'" xcol-rid="'.$row_c['ID'].'" xcol-t="date" xcol-id="'.$row_c['ID'].'" undere="0" class="xcol-comm text-center px-0" xcol-txt="'.$dt_fmt_en.'">'.$dt_fmt_en.'</td>
 				<td id="pa_'.$row_c['ID'].'" xcol-rid="'.$row_c['ID'].'" xcol-t="pa" xcol-id="'.$_genJS['pa']['id'].'" undere="0" class="xcol-comm text-center px-0">'.$pa_.'</td>
 				
 				<td id="ia_'.$row_c['ID'].'" xcol-rid="'.$row_c['ID'].'" xcol-t="ia" xcol-id="0" xcol-a="'.round( $amt_orig,2 ).'" xcol-c="'.$row_c['InvoiceCurrency'].'" xcol-req="'.$row_c['RequestID'].'" undere="0" class="xcol-comm text-right pr-1" xcol-txt="'.$inv_amt_ .' '.$currency_names[ $row_c['InvoiceCurrency'] ].'">'. $inv_amt_ .' '.$currency_names[ $row_c['InvoiceCurrency'] ].'</td>

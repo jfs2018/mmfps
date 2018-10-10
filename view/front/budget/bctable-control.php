@@ -2870,6 +2870,9 @@ var items_com_req = '.json_encode( $items_com_req ).' ; // 2018-09-12
 
 var idsof_com_req = '.json_encode( $idsof_com_req ).' ; // 2018-09-13	
 
+var cbx_opts_crncy = "'.$cbx_opts_crncy.'" ;
+var cbx_opts_basecur_only = "<option value=\"'.$basic_currency_id.'\">'.$basic_currency_txt.'</option>"; // 20181010
+
 // 2018-09-16
 var genjs_sumof_com = 0 ;
 
